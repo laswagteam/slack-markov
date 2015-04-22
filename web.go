@@ -46,11 +46,6 @@ func init() {
 					log.Fatal(err)
 				}
 
-				if twitterClient != nil {
-					log.Printf("Tweeting: %s", response.Text)
-					twitterClient.Post(response.Text)
-				}
-
 				time.Sleep(5 * time.Second)
 				w.Write(b)
 			}

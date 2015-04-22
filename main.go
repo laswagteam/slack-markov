@@ -19,12 +19,6 @@ var (
 	responseChance int
 	botUsername    string
 
-	twitterConsumerKey       string
-	twitterConsumerSecret    string
-	twitterAccessToken       string
-	twitterAccessTokenSecret string
-	twitterClient            *Twitter
-
 	markovChain *Chain
 )
 

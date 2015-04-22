@@ -36,7 +36,7 @@ func init() {
 				markovChain.Save(stateFile)
 			}()
 
-			if rand.Intn(100) <= responseChance || strings.HasPrefix(text, botUsername) {
+			if rand.Intn(100) < responseChance || strings.HasPrefix(text, botUsername) {
 				var response WebhookResponse
 				response.Username = botUsername
 				response.Text = markovChain.Generate(numWords)

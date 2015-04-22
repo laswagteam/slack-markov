@@ -11,7 +11,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -59,9 +58,9 @@ func init() {
 	})
 }
 
-func StartServer(port int) {
-	log.Printf("Starting HTTP server on %d", port)
-	err := http.ListenAndServe(":"+strconv.Itoa(port), nil)
+func StartServer(addr string) {
+	log.Printf("Starting HTTP server on %s", addr)
+	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

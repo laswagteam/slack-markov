@@ -58,10 +58,12 @@ func main() {
 	httpPort = os.Getenv("PORT")
 	httpHost = os.Getenv("HOST")
 	//stateFile = os.Getenv("BRAIN")
-	stateFile = "state"
+	stateFile = "../data/state"
 	//botUsername = os.Getenv("NAME")
 	botUsername = "Brainard"
 	responseChance = 10
+	prefixLen = 2
+	numWords = 100
 
 	markovChain = NewChain(prefixLen) // Initialize a new Chain.
 

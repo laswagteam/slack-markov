@@ -9,6 +9,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -23,7 +24,7 @@ type WebhookResponse struct {
 func init() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		incomingText := r.PostFormValue("text")
-		if incomingText != "" && r.PostFormValue("user_id") != "" {
+		if incomingText != "" && r.PostFormValue("user_id") != "" && r.PostFormValue("user_id") != "USLACKBOT"{
 			text := parseText(incomingText)
 			log.Printf("Handling incoming request: %s", text)
 
@@ -35,10 +36,20 @@ func init() {
 				markovChain.Save(stateFile)
 			}()
 
-			if rand.Intn(100) < responseChance || strings.HasPrefix(text, botUsername) {
+			if rand.Intn(100) < responseChance || strings.Contains(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
 				var response WebhookResponse
 				response.Username = botUsername
-				response.Text = markovChain.Generate(numWords)
+				if strings.Contains(incomingText, "TG") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
+					responseChance -= 5
+					response.Text = "Okay :( je suis à "+strconv.Itoa(responseChance)+"%"
+				} else if strings.Contains(incomingText, "BS") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
+					responseChance += 5
+					response.Text = "Okay :D je suis à "+strconv.Itoa(responseChance)+"%"
+				} else if strings.Contains(incomingText, "moral") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
+					response.Text = "Environ "+strconv.Itoa(responseChance)+"% mon capitaine !"
+				} else {
+					response.Text = markovChain.Generate(numWords)
+				}
 				log.Printf("Sending response: %s", response.Text)
 
 				b, err := json.Marshal(response)

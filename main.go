@@ -61,6 +61,7 @@ func main() {
 	stateFile = "state"
 	//botUsername = os.Getenv("NAME")
 	botUsername = "Brainard"
+	responseChance = 10
 
 	markovChain = NewChain(prefixLen) // Initialize a new Chain.
 

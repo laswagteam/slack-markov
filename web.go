@@ -26,7 +26,7 @@ func init() {
 		incomingText := r.PostFormValue("text")
 		if incomingText != "" && r.PostFormValue("user_id") != "" && r.PostFormValue("user_id") != "USLACKBOT"{
 			text := parseText(incomingText)
-			log.Printf("Handling incoming request: %s", text)
+			//log.Printf("Handling incoming request: %s", text)
 
 			if text != "" {
 				markovChain.Write(text)
@@ -50,7 +50,7 @@ func init() {
 				} else {
 					response.Text = markovChain.Generate(numWords)
 				}
-				log.Printf("Sending response: %s", response.Text)
+				//log.Printf("Sending response: %s", response.Text)
 
 				b, err := json.Marshal(response)
 				if err != nil {

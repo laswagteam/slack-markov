@@ -41,9 +41,15 @@ func init() {
 				response.Username = botUsername
 				if strings.Contains(incomingText, "TG") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
 					responseChance -= 5
+					if responseChance < 0 {
+						responseChance = 0
+					}
 					response.Text = "Okay :( je suis à "+strconv.Itoa(responseChance)+"%"
 				} else if strings.Contains(incomingText, "BS") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
 					responseChance += 5
+					if responseChance > 100 {
+						responseChance = 100
+					}
 					response.Text = "Okay :D je suis à "+strconv.Itoa(responseChance)+"%"
 				} else if strings.Contains(incomingText, "moral") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
 					response.Text = "Environ "+strconv.Itoa(responseChance)+"% mon capitaine !"

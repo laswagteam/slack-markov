@@ -69,10 +69,10 @@ func init() {
     if rand.Intn(100) < responseChance || botMentionned {
       response := WebhookResponse{Username: botUsername}
 
-      if botDirectTalk && strings.Contains(lowerText, "TG") {
+      if botDirectTalk && strings.Contains(lowerText, "tg") {
         responseChance = computeResponseChance(responseChance, -1, strings.Contains(lowerText, "poil"))
         response.Text = "Okay :( je suis à "+strconv.Itoa(responseChance)+"%"
-      } else if botDirectTalk && strings.Contains(lowerText, "BS") {
+      } else if botDirectTalk && strings.Contains(lowerText, "bs") {
         responseChance = computeResponseChance(responseChance, 1, strings.Contains(lowerText, "poil"))
         response.Text = "Okay :D je suis à "+strconv.Itoa(responseChance)+"%"
       } else if botDirectTalk && strings.Contains(lowerText, "moral") {

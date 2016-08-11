@@ -33,7 +33,7 @@ func StartServer(address string) {
 }
 
 // computeResponseChance handle the increment/decrement of responseChance
-func computeResponseChance(responseChance int, increment int, fineIncrement bool) {
+func computeResponseChance(responseChance int, increment int, fineIncrement bool) int {
   var newResponseChance int
 
   if fineIncrement {

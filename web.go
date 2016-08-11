@@ -54,9 +54,9 @@ func computeResponseChance(responseChance int, increment int, fineIncrement bool
 func init() {
   http.HandleFunc("/", func(httpResponse http.ResponseWriter, httpRequest *http.Request) {
     isEmpty    := len(strings.TrimSpace(httpRequest.PostFormValue("text"))) == 0
-    isSlackbot := httpRequest.PostFormValue("user_id") != "USLACKBOT"
+    isSlackbot := httpRequest.PostFormValue("user_id") == "USLACKBOT"
 
-    if isEmpty || isSlackbot || httpRequest.PostFormValue("user_id") != "" {
+    if isEmpty || isSlackbot || httpRequest.PostFormValue("user_id") == "" {
       return
     }
 

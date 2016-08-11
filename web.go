@@ -7,81 +7,95 @@ package main
 // https://my.slack.com/services/new/outgoing-webhook
 
 import (
-	"encoding/json"
-	"log"
-	"strconv"
-	"math/rand"
-	"net/http"
-	"strings"
-	"time"
+  "encoding/json"
+  "log"
+  "strconv"
+  "math/rand"
+  "net/http"
+  "strings"
+  "time"
 )
 
+// WebhookResponse is an unexported type that contains a struct presenting a
+// message response
 type WebhookResponse struct {
-	Username string `json:"username"`
-	Text     string `json:"text"`
+  Username string `json:"username"`
+  Text     string `json:"text"`
+}
+
+// StartServer starts the http server
+func StartServer(address string) {
+  log.Printf("Starting HTTP server on %s", address)
+  error := http.ListenAndServe(address, nil)
+  if error != nil {
+    log.Fatal("ListenAndServe: ", error)
+  }
+}
+
+// computeResponseChance handle the increment/decrement of responseChance
+func computeResponseChance(responseChance int, increment int, fineIncrement bool) {
+  var newResponseChance int
+
+  if fineIncrement {
+    newResponseChance = responseChance + increment
+  } else {
+    newResponseChance = responseChance + (increment * 5)
+  }
+
+  if newResponseChance < 0 {
+    return 0
+  } else if newResponseChance > 100 {
+    return 100
+  }
+
+  return newResponseChance
 }
 
 func init() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		incomingText := r.PostFormValue("text")
-		if incomingText != "" && r.PostFormValue("user_id") != "" && r.PostFormValue("user_id") != "USLACKBOT"{
-			text := parseText(incomingText)
-			//log.Printf("Handling incoming request: %s", text)
+  http.HandleFunc("/", func(httpResponse http.ResponseWriter, httpRequest *http.Request) {
+    isEmpty    := len(strings.TrimSpace(httpRequest.PostFormValue("text"))) == 0
+    isSlackbot := httpRequest.PostFormValue("user_id") != "USLACKBOT"
 
-			if text != "" {
-				markovChain.Write(text)
-			}
+    if isEmpty || isSlackbot || httpRequest.PostFormValue("user_id") != "" {
+      return
+    }
 
-			go func() {
-				markovChain.Save(stateFile)
-			}()
+    text             := parseText(httpRequest.PostFormValue("text"))
+    lowerText        := strings.ToLower(text)
+    lowerBotUserName := strings.ToLower(botUsername)
+    botMentionned    := strings.Contains(lowerText, lowerBotUserName)
+    botDirectTalk    := strings.HasPrefix(lowerText, lowerBotUserName)
 
-			if rand.Intn(100) < responseChance || strings.Contains(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
-				var response WebhookResponse
-				response.Username = botUsername
-				if strings.Contains(incomingText, "TG") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
-					if strings.Contains(incomingText, "poil") {
-						responseChance -= 1
-					} else{
-						responseChance -= 5
-					}
-					if responseChance < 0 {
-						responseChance = 0
-					}
-					response.Text = "Okay :( je suis à "+strconv.Itoa(responseChance)+"%"
-				} else if strings.Contains(incomingText, "BS") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
-					if strings.Contains(incomingText, "poil") {
-						responseChance += 1
-					} else{
-						responseChance += 5
-					}
-					if responseChance > 100 {
-						responseChance = 100
-					}
-					response.Text = "Okay :D je suis à "+strconv.Itoa(responseChance)+"%"
-				} else if strings.Contains(incomingText, "moral") && strings.HasPrefix(strings.ToLower(incomingText), strings.ToLower(botUsername)) {
-					response.Text = "Environ "+strconv.Itoa(responseChance)+"% mon capitaine !"
-				} else {
-					response.Text = markovChain.Generate(numWords)
-				}
-				//log.Printf("Sending response: %s", response.Text)
+    if rand.Intn(100) < responseChance || botMentionned {
+      response := WebhookResponse{Username: botUsername}
 
-				b, err := json.Marshal(response)
-				if err != nil {
-					log.Fatal(err)
-				}
+      if botDirectTalk && strings.Contains(lowerText, "TG") {
+        responseChance = computeResponseChance(responseChance, -1, strings.Contains(lowerText, "poil"))
+        response.Text = "Okay :( je suis à "+strconv.Itoa(responseChance)+"%"
+      } else if botDirectTalk && strings.Contains(lowerText, "BS") {
+        responseChance = computeResponseChance(responseChance, 1, strings.Contains(lowerText, "poil"))
+        response.Text = "Okay :D je suis à "+strconv.Itoa(responseChance)+"%"
+      } else if botDirectTalk && strings.Contains(lowerText, "moral") {
+        response.Text = "Environ "+strconv.Itoa(responseChance)+"% mon capitaine !"
+      } else {
+        if (!botMentionned) {
+          markovChain.Write(text)
 
-				time.Sleep(5 * time.Second)
-				w.Write(b)
-			}
-		}
-	})
-}
+          go func() {
+            markovChain.Save(stateFile)
+          }()
+        }
 
-func StartServer(addr string) {
-	log.Printf("Starting HTTP server on %s", addr)
-	err := http.ListenAndServe(addr, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+        response.Text = markovChain.Generate(numWords)
+      }
+
+      generatedResponse, error := json.Marshal(response)
+      if error != nil {
+        log.Fatal(error)
+      }
+
+      time.Sleep(5 * time.Second)
+      httpResponse.Write(generatedResponse)
+    }
+  })
 }
